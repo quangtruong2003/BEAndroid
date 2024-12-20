@@ -9,5 +9,7 @@ public interface SupplierService {
     List<Supplier> getAllSuppliers();
     Optional<Supplier> getSupplierById(Long id);
     Supplier saveSupplier(Supplier supplier);
-    void deleteSupplier(Long id);
+    void deleteSupplier(Long id) throws Exception;
+    Supplier updateSupplier(Long id, Supplier updatedSupplier) throws Exception;
+    Supplier findById(Long id) throws Exception;
 }

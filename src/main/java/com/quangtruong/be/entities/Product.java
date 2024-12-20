@@ -1,10 +1,13 @@
 package com.quangtruong.be.entities;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -15,7 +18,7 @@ public class Product {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long productId;
+    private Long productID;
 
     @Column(name = "ProductName")
     private String productName;
@@ -43,8 +46,10 @@ public class Product {
     @Column(name = "Specifications")
     private String specifications;
 
-    @Column(name = "ImageURL")
-    private String imageURL;
+    @ElementCollection
+    @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url", length = 2000)
+    private List<String> images;
 
     @Column(name = "CreatedAt")
     private LocalDateTime createdAt;

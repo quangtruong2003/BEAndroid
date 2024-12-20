@@ -1,4 +1,3 @@
-// Customer.java
 package com.quangtruong.be.entities;
 
 import lombok.*;
@@ -45,7 +44,7 @@ public class Customer {
     private LocalDateTime updatedAt;
 
     @Column(name = "IsActive")
-    private boolean isActive;
+    private boolean active;
 
     @OneToMany(mappedBy = "customer")
     private List<Order> orders;

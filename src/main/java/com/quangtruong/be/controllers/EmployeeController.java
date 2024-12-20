@@ -1,13 +1,17 @@
 package com.quangtruong.be.controllers;
 
+import com.quangtruong.be.dto.EmployeeDTO;
 import com.quangtruong.be.entities.Employee;
 import com.quangtruong.be.services.EmployeeService;
+import com.quangtruong.be.services.impl.EmployeeServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -16,39 +20,37 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private EmployeeServiceImpl employeeServiceImpl;
+
     @GetMapping
-    public ResponseEntity<List<Employee>> getAllEmployees() {
+    public ResponseEntity<List<EmployeeDTO>> getAllEmployees() {
         List<Employee> employees = employeeService.getAllEmployees();
-        return new ResponseEntity<>(employees, HttpStatus.OK);
+        List<EmployeeDTO> employeeDTOs = employeeServiceImpl.toDtoList(employees);
+        return new ResponseEntity<>(employeeDTOs, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id) {
-        return employeeService.getEmployeeById(id)
-                .map(employee -> new ResponseEntity<>(employee, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<EmployeeDTO> getEmployeeById(@PathVariable Long id) throws Exception {
+        Employee employee = employeeService.getEmployeeById(id)
+                .orElseThrow(() -> new Exception("Employee not found with id: " + id));
+        EmployeeDTO employeeDTO = employeeServiceImpl.convertToDto(employee);
+        return new ResponseEntity<>(employeeDTO, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Employee> createEmployee(@RequestBody Employee employee) {
-        Employee savedEmployee = employeeService.saveEmployee(employee);
-        return new ResponseEntity<>(savedEmployee, HttpStatus.CREATED);
+    public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody Employee employee) {
+        Employee savedEmployee = employeeService.saveEmployee(employee, passwordEncoder);
+        EmployeeDTO employeeDTO = employeeServiceImpl.convertToDto(savedEmployee);
+        return new ResponseEntity<>(employeeDTO, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
         Employee employee1 = employeeService.updateEmployee(id, employee);
         return new ResponseEntity<>(employee1, HttpStatus.OK);
-//        return employeeService.getEmployeeById(id)
-//                .map(existingEmployee -> {
-//                    existingEmployee.setEmployeeId(id);
-//                    // Cẩn thận khi cho phép update password qua API, cần có cơ chế bảo mật phù hợp
-//                    // ở đây, tạm thời bỏ qua update passwordHash
-//                    // employee.setPasswordHash(existingEmployee.getPasswordHash());
-//                    Employee updatedEmployee = employeeService.saveEmployee(existingEmployee);
-//                    return new ResponseEntity<>(updatedEmployee, HttpStatus.OK);
-//                })
-//                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     @DeleteMapping("/{id}")

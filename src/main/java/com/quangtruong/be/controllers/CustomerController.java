@@ -61,9 +61,15 @@ public class CustomerController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<CustomerResponse> deleteCustomer(@PathVariable Long id) {
-        customerService.deleteCustomer(id);
-        CustomerResponse response = new CustomerResponse("Customer deleted successfully", null);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        try {
+            customerService.deleteCustomer(id);
+            CustomerResponse response = new CustomerResponse("Customer deleted successfully", null);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            // Xử lý exception ở đây, ví dụ: log lỗi
+            CustomerResponse response = new CustomerResponse("Error deleting customer: " + e.getMessage(), null);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/email/{email}")

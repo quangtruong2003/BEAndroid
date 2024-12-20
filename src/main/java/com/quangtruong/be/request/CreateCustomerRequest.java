@@ -24,4 +24,6 @@ public class CreateCustomerRequest {
     private String password;
 
     private String address;
+
+    private boolean active;
 }

@@ -9,6 +9,7 @@ public interface CategoryService {
     List<Category> getAllCategories();
     Optional<Category> getCategoryById(Long id);
     Category saveCategory(Category category);
-    void deleteCategory(Long id);
-    Category updateCategory(Long id, Category category);
+    void deleteCategory(Long id) throws Exception;
+    Category updateCategory(Long id, Category category) throws Exception;
+    Category findById(Long id) throws Exception;
 }

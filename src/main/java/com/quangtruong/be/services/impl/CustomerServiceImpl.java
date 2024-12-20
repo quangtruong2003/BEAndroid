@@ -1,5 +1,6 @@
 package com.quangtruong.be.services.impl;
 
+import com.quangtruong.be.config.JwtProvider;
 import com.quangtruong.be.dto.CustomerDTO;
 import com.quangtruong.be.entities.Customer;
 import com.quangtruong.be.repositories.CustomerRepository;
@@ -7,14 +8,15 @@ import com.quangtruong.be.request.CreateCustomerRequest;
 import com.quangtruong.be.request.UpdateCustomerRequest;
 import com.quangtruong.be.services.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +29,9 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtProvider jwtProvider;
 
     @Override
     public List<CustomerDTO> getAllCustomers() {
@@ -50,7 +55,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setPhone(request.getPhone());
         customer.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         customer.setAddress(request.getAddress());
-        customer.setActive(true);
+        customer.setActive(request.isActive());
 
         return convertToDto(customerRepository.save(customer));
     }
@@ -74,8 +79,8 @@ public class CustomerServiceImpl implements CustomerService {
             if (request.getUpdatedAt() != null) {
                 customer.setUpdatedAt(request.getUpdatedAt());
             }
-            if (request.getIsActive() != null) {
-                customer.setActive(request.getIsActive());
+            if (request.getActive() != null) {
+                customer.setActive(request.getActive());
             }
             return convertToDto(customerRepository.save(customer));
         }
@@ -83,8 +88,19 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void deleteCustomer(Long id) {
-        customerRepository.deleteById(id);
+    public CustomerDTO findById(Long id) throws Exception {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new Exception("Customer not found with id: " + id));
+        return convertToDto(customer);
+    }
+
+    @Override
+    public void deleteCustomer(Long id) throws Exception{
+        Customer customer = customerRepository.findById(id).orElse(null);
+        if (customer == null) {
+            throw new Exception("Customer not found with id: " + id);
+        }
+        customerRepository.delete(customer);
     }
 
     @Override
@@ -115,10 +131,6 @@ public class CustomerServiceImpl implements CustomerService {
         }
 
         List<GrantedAuthority> authorities = new ArrayList<>();
-        // Thêm logic để lấy role từ Customer entity (nếu có)
-        // Ví dụ: authorities.add(new SimpleGrantedAuthority(customer.getRole()));
-        // Hoặc set cứng role là ROLE_CUSTOMER:
-        authorities.add(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
 
         return new User(customer.getEmail(), customer.getPasswordHash(), authorities);
     }
@@ -128,5 +140,26 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Customer saveCustomer(Customer customer) {
         return customerRepository.save(customer);
+    }
+
+    public Customer findUserProfileByJwt(String jwt) throws Exception {
+        String email = jwtProvider.getEmailFromToken(jwt);
+        if (email == null) {
+            throw new BadCredentialsException("Invalid token");
+        }
+        Customer customer = customerRepository.findByEmail(email);
+        if (customer == null) {
+            throw new Exception("User not found with email " + email);
+        }
+        return customer;
+    }
+
+    @Override
+    public CustomerDTO updateCustomerStatus(Long id, boolean status) throws Exception {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new Exception("Customer not found with id: " + id));
+        customer.setActive(status);
+        customer.setUpdatedAt(LocalDateTime.now());
+        return convertToDto(customerRepository.save(customer));
     }
 }

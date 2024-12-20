@@ -10,5 +10,5 @@ public interface OrderService {
     Optional<Order> getOrderById(Long id);
     Order saveOrder(Order order);
     void deleteOrder(Long id);
-  
+    Order findById(Long id) throws Exception;
 }

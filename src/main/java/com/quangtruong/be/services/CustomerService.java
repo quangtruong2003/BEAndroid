@@ -13,7 +13,14 @@ public interface CustomerService extends UserDetailsService {
     CustomerDTO getCustomerById(Long id);
     CustomerDTO createCustomer(CreateCustomerRequest customer);
     CustomerDTO updateCustomer(Long id, UpdateCustomerRequest customer);
-    void deleteCustomer(Long id);
+    void deleteCustomer(Long id) throws Exception;
     CustomerDTO getCustomerByEmail(String email);
-    Customer saveCustomer(Customer customer);
+
+    Customer saveCustomer(Customer createdUser);
+
+    Customer findUserProfileByJwt(String jwt) throws Exception;
+
+    // Thêm 2 method này vào interface
+    CustomerDTO findById(Long id) throws Exception;
+    CustomerDTO updateCustomerStatus(Long id, boolean status) throws Exception;
 }

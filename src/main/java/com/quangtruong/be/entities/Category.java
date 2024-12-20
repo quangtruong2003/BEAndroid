@@ -15,7 +15,7 @@ public class Category {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long categoryId; // Thay đổi từ categoryID -> categoryId
+    private Long categoryId;
 
     @Column(name = "CategoryName")
     private String categoryName;

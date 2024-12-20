@@ -48,7 +48,13 @@ public class SupplierController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSupplier(@PathVariable Long id) {
-        supplierService.deleteSupplier(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        try {
+            supplierService.deleteSupplier(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (Exception e) {
+            // Xử lý exception ở đây, ví dụ: log lỗi
+            System.err.println("Error deleting supplier: " + e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

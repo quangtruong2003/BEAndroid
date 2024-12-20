@@ -19,5 +19,5 @@ public class UpdateCustomerRequest {
 
     private LocalDateTime updatedAt = LocalDateTime.now();
 
-    private Boolean isActive; // Use Boolean instead of boolean to allow null values
+    private Boolean active;
 }

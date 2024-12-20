@@ -21,20 +21,25 @@ import java.util.Collections;
 public class AppConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
-        http.sessionManagement(managment -> managment.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(Authorize -> Authorize.requestMatchers("/api/admin/**").hasRole("ADMIN") // Assuming you use ADMIN for employees
-                        .requestMatchers("/api/auth/**").permitAll() // Allow registration and login for all
-                        .requestMatchers("/api/**").authenticated() // Require authentication for other API endpoints
-                        .anyRequest().permitAll()) // Permit all other requests (consider securing these as needed)
+    SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        http.sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/auth/employee/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll() // Cho phép đăng ký và đăng nhập
+                        .requestMatchers("/api/cart/**").authenticated() // Giỏ hàng cần đăng nhập
+                        .requestMatchers("/api/products/**", "/api/categories/**", "/api/suppliers/**").permitAll() // Cho phép xem sản phẩm, danh mục, nhà cung cấp
+                        .requestMatchers("/api/**").authenticated() // Các API còn lại cần đăng nhập
+                        .anyRequest().permitAll() // Các request khác cho phép hết
+                )
                 .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
-                .csrf(csrf->csrf.disable())
-                .cors(cors->cors.configurationSource(corsConfigrationSource()));
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         return http.build();
     }
 
-    private CorsConfigurationSource corsConfigrationSource() {
+    private CorsConfigurationSource corsConfigurationSource() {
         return new CorsConfigurationSource() {
             @Override
             public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
