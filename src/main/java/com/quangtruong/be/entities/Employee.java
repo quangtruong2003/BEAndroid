@@ -28,9 +28,6 @@ public class Employee {
     @Column(name = "PasswordHash")
     private String passwordHash;
 
-    @Column(name = "Role")
-    private String role;
-
     @Column(name = "CreatedAt")
     private LocalDateTime createdAt;
 

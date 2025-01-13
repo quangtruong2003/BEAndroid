@@ -1,7 +1,9 @@
 package com.quangtruong.be.controllers;
 
+import com.quangtruong.be.dto.SupplierDTO;
 import com.quangtruong.be.entities.Supplier;
 import com.quangtruong.be.services.SupplierService;
+import com.quangtruong.be.services.impl.SupplierServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,45 +18,47 @@ public class SupplierController {
     @Autowired
     private SupplierService supplierService;
 
+    @Autowired
+    private SupplierServiceImpl supplierServiceImpl; // Inject SupplierServiceImpl để sử dụng các phương thức chuyển đổi
+
+    // Trả về List<SupplierDTO> thay vì List<Supplier>
     @GetMapping
-    public ResponseEntity<List<Supplier>> getAllSuppliers() {
+    public ResponseEntity<List<SupplierDTO>> getAllSuppliers() {
         List<Supplier> suppliers = supplierService.getAllSuppliers();
-        return new ResponseEntity<>(suppliers, HttpStatus.OK);
+        List<SupplierDTO> supplierDTOs = supplierServiceImpl.toDtoList(suppliers);
+        return new ResponseEntity<>(supplierDTOs, HttpStatus.OK);
     }
 
+    // Trả về SupplierDTO thay vì Supplier
     @GetMapping("/{id}")
-    public ResponseEntity<Supplier> getSupplierById(@PathVariable Long id) {
-        return supplierService.getSupplierById(id)
-                .map(supplier -> new ResponseEntity<>(supplier, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<SupplierDTO> getSupplierById(@PathVariable Long id) throws Exception {
+        Supplier supplier = supplierService.findById(id);
+        SupplierDTO supplierDTO = supplierServiceImpl.convertToDto(supplier);
+        return new ResponseEntity<>(supplierDTO, HttpStatus.OK);
     }
 
+    // Trả về SupplierDTO sau khi tạo thay vì Supplier
     @PostMapping
-    public ResponseEntity<Supplier> createSupplier(@RequestBody Supplier supplier) {
+    public ResponseEntity<SupplierDTO> createSupplier(@RequestBody Supplier supplier) throws Exception {
         Supplier savedSupplier = supplierService.saveSupplier(supplier);
-        return new ResponseEntity<>(savedSupplier, HttpStatus.CREATED);
+        SupplierDTO supplierDTO = supplierServiceImpl.convertToDto(savedSupplier);
+        return new ResponseEntity<>(supplierDTO, HttpStatus.CREATED);
     }
 
+    // Trả về SupplierDTO sau khi cập nhật thay vì Supplier
     @PutMapping("/{id}")
-    public ResponseEntity<Supplier> updateSupplier(@PathVariable Long id, @RequestBody Supplier supplier) {
-        return supplierService.getSupplierById(id)
-                .map(existingSupplier -> {
-                    existingSupplier.setSupplierId(id);
-                    Supplier updatedSupplier = supplierService.saveSupplier(supplier);
-                    return new ResponseEntity<>(updatedSupplier, HttpStatus.OK);
-                })
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<SupplierDTO> updateSupplier(@PathVariable Long id, @RequestBody Supplier supplier) throws Exception {
+        Supplier updatedSupplier = supplierService.updateSupplier(id, supplier);
+        SupplierDTO supplierDTO = supplierServiceImpl.convertToDto(updatedSupplier);
+        return new ResponseEntity<>(supplierDTO, HttpStatus.OK);
     }
 
+    // DELETE vẫn trả về Void
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSupplier(@PathVariable Long id) {
-        try {
-            supplierService.deleteSupplier(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            // Xử lý exception ở đây, ví dụ: log lỗi
-            System.err.println("Error deleting supplier: " + e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<Void> deleteSupplier(@PathVariable Long id) throws Exception {
+        supplierService.deleteSupplier(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
+
+

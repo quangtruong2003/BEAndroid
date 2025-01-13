@@ -1,7 +1,9 @@
 package com.quangtruong.be.controllers;
 
+import com.quangtruong.be.dto.OrderDetailDTO;
 import com.quangtruong.be.entities.OrderDetail;
 import com.quangtruong.be.services.OrderDetailService;
+import com.quangtruong.be.services.impl.OrderServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,23 +18,31 @@ public class OrderDetailController {
     @Autowired
     private OrderDetailService orderDetailService;
 
+    @Autowired
+    private OrderServiceImpl orderServiceImpl;
+
     @GetMapping
-    public ResponseEntity<List<OrderDetail>> getAllOrderDetails() {
+    public ResponseEntity<List<OrderDetailDTO>> getAllOrderDetails() {
         List<OrderDetail> orderDetails = orderDetailService.getAllOrderDetails();
-        return new ResponseEntity<>(orderDetails, HttpStatus.OK);
+        List<OrderDetailDTO> orderDetailDTOs = orderDetails.stream().map(orderServiceImpl::convertOrderDetailToDto).toList();
+        return new ResponseEntity<>(orderDetailDTOs, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OrderDetail> getOrderDetailById(@PathVariable Long id) {
-        return orderDetailService.getOrderDetailById(id)
-                .map(orderDetail -> new ResponseEntity<>(orderDetail, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<OrderDetailDTO> getOrderDetailById(@PathVariable Long id) {
+        OrderDetail orderDetail = orderDetailService.getOrderDetailById(id).orElse(null);
+        if(orderDetail == null){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        OrderDetailDTO orderDetailDTO = orderServiceImpl.convertOrderDetailToDto(orderDetail);
+        return new ResponseEntity<>(orderDetailDTO, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<OrderDetail> createOrderDetail(@RequestBody OrderDetail orderDetail) {
+    public ResponseEntity<OrderDetailDTO> createOrderDetail(@RequestBody OrderDetail orderDetail) {
         OrderDetail savedOrderDetail = orderDetailService.saveOrderDetail(orderDetail);
-        return new ResponseEntity<>(savedOrderDetail, HttpStatus.CREATED);
+        OrderDetailDTO orderDetailDTO = orderServiceImpl.convertOrderDetailToDto(savedOrderDetail);
+        return new ResponseEntity<>(orderDetailDTO, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/{id}")

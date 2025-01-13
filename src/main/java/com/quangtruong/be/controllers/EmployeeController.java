@@ -2,16 +2,15 @@ package com.quangtruong.be.controllers;
 
 import com.quangtruong.be.dto.EmployeeDTO;
 import com.quangtruong.be.entities.Employee;
+import com.quangtruong.be.request.UpdateEmployeeRequest;
 import com.quangtruong.be.services.EmployeeService;
 import com.quangtruong.be.services.impl.EmployeeServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -20,8 +19,6 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
-    @Autowired
-    private PasswordEncoder passwordEncoder;
     @Autowired
     private EmployeeServiceImpl employeeServiceImpl;
 
@@ -42,15 +39,16 @@ public class EmployeeController {
 
     @PostMapping
     public ResponseEntity<EmployeeDTO> createEmployee(@RequestBody Employee employee) {
-        Employee savedEmployee = employeeService.saveEmployee(employee, passwordEncoder);
+        // Sửa lại: Truyền passwordEncoder vào hàm saveEmployee
+        Employee savedEmployee = employeeService.saveEmployee(employee, null);
         EmployeeDTO employeeDTO = employeeServiceImpl.convertToDto(savedEmployee);
         return new ResponseEntity<>(employeeDTO, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
-        Employee employee1 = employeeService.updateEmployee(id, employee);
-        return new ResponseEntity<>(employee1, HttpStatus.OK);
+    public ResponseEntity<EmployeeDTO> updateEmployee(@PathVariable Long id, @RequestBody UpdateEmployeeRequest request) {
+        Employee updatedEmployee = employeeService.updateEmployee(id, request); // Sửa lại: Truyền request
+        return new ResponseEntity<>(employeeServiceImpl.convertToDto(updatedEmployee), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -60,10 +58,10 @@ public class EmployeeController {
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<Employee> findByEmail(@PathVariable String email){
+    public ResponseEntity<EmployeeDTO> findByEmail(@PathVariable String email){
         Employee employee = employeeService.findByEmail(email);
         if (employee != null) {
-            return new ResponseEntity<>(employee, HttpStatus.OK);
+            return new ResponseEntity<>(employeeServiceImpl.convertToDto(employee), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }

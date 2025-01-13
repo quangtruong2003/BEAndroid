@@ -1,7 +1,9 @@
 package com.quangtruong.be.controllers;
 
+import com.quangtruong.be.dto.PurchaseOrderDTO;
 import com.quangtruong.be.entities.PurchaseOrder;
 import com.quangtruong.be.services.PurchaseOrderService;
+import com.quangtruong.be.services.impl.PurchaseOrderServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,34 +18,42 @@ public class PurchaseOrderController {
     @Autowired
     private PurchaseOrderService purchaseOrderService;
 
+    @Autowired
+    private PurchaseOrderServiceImpl purchaseOrderServiceImpl;
+
     @GetMapping
-    public ResponseEntity<List<PurchaseOrder>> getAllPurchaseOrders() {
+    public ResponseEntity<List<PurchaseOrderDTO>> getAllPurchaseOrders() {
         List<PurchaseOrder> purchaseOrders = purchaseOrderService.getAllPurchaseOrders();
-        return new ResponseEntity<>(purchaseOrders, HttpStatus.OK);
+        List<PurchaseOrderDTO> purchaseOrderDTOs = purchaseOrderServiceImpl.toDtoList(purchaseOrders);
+        return new ResponseEntity<>(purchaseOrderDTOs, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PurchaseOrder> getPurchaseOrderById(@PathVariable Long id) {
-        return purchaseOrderService.getPurchaseOrderById(id)
-                .map(purchaseOrder -> new ResponseEntity<>(purchaseOrder, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<PurchaseOrderDTO> getPurchaseOrderById(@PathVariable Long id) {
+        PurchaseOrder purchaseOrder = purchaseOrderService.getPurchaseOrderById(id).orElse(null);
+        if(purchaseOrder == null){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        PurchaseOrderDTO purchaseOrderDTO = purchaseOrderServiceImpl.convertToDto(purchaseOrder);
+        return new ResponseEntity<>(purchaseOrderDTO, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<PurchaseOrder> createPurchaseOrder(@RequestBody PurchaseOrder purchaseOrder) {
+    public ResponseEntity<PurchaseOrderDTO> createPurchaseOrder(@RequestBody PurchaseOrder purchaseOrder) {
         PurchaseOrder savedPurchaseOrder = purchaseOrderService.savePurchaseOrder(purchaseOrder);
-        return new ResponseEntity<>(savedPurchaseOrder, HttpStatus.CREATED);
+        PurchaseOrderDTO purchaseOrderDTO = purchaseOrderServiceImpl.convertToDto(savedPurchaseOrder);
+        return new ResponseEntity<>(purchaseOrderDTO, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PurchaseOrder> updatePurchaseOrder(@PathVariable Long id, @RequestBody PurchaseOrder purchaseOrder) {
-        return purchaseOrderService.getPurchaseOrderById(id)
-                .map(existingPurchaseOrder -> {
-                    existingPurchaseOrder.setPurchaseOrderId(id);
-                    PurchaseOrder updatedPurchaseOrder = purchaseOrderService.savePurchaseOrder(purchaseOrder);
-                    return new ResponseEntity<>(updatedPurchaseOrder, HttpStatus.OK);
-                })
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<PurchaseOrderDTO> updatePurchaseOrder(@PathVariable Long id, @RequestBody PurchaseOrder purchaseOrder) {
+        PurchaseOrder purchaseOrder1 = purchaseOrderService.getPurchaseOrderById(id).orElse(null);
+        if(purchaseOrder1 == null){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        purchaseOrder1.setPurchaseOrderId(id);
+        purchaseOrderService.savePurchaseOrder(purchaseOrder);
+        return new ResponseEntity<>(purchaseOrderServiceImpl.convertToDto(purchaseOrder1), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

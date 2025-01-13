@@ -25,4 +25,6 @@ public interface ProductService {
     Product updateProduct(Long id, CreateProductRequest req, Category category, Supplier supplier) throws Exception;
 
     Product findById(Long id) throws Exception;
+
+    boolean existsByProductName(String productName);
 }

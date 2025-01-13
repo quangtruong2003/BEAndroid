@@ -1,7 +1,9 @@
 package com.quangtruong.be.controllers;
 
+import com.quangtruong.be.dto.OrderDTO;
 import com.quangtruong.be.entities.Order;
 import com.quangtruong.be.services.OrderService;
+import com.quangtruong.be.services.impl.OrderServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,34 +18,36 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private OrderServiceImpl orderServiceImpl;
+
     @GetMapping
-    public ResponseEntity<List<Order>> getAllOrders() {
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
         List<Order> orders = orderService.getAllOrders();
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+        List<OrderDTO> orderDTOs = orderServiceImpl.toDtoList(orders);
+        return new ResponseEntity<>(orderDTOs, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Order> getOrderById(@PathVariable Long id) {
-        return orderService.getOrderById(id)
-                .map(order -> new ResponseEntity<>(order, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) throws Exception{
+        Order order = orderService.findById(id);
+        OrderDTO orderDTO = orderServiceImpl.convertToDto(order);
+        return new ResponseEntity<>(orderDTO, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Order> createOrder(@RequestBody Order order) {
+    public ResponseEntity<OrderDTO> createOrder(@RequestBody Order order) {
         Order savedOrder = orderService.saveOrder(order);
-        return new ResponseEntity<>(savedOrder, HttpStatus.CREATED);
+        OrderDTO orderDTO = orderServiceImpl.convertToDto(savedOrder);
+        return new ResponseEntity<>(orderDTO, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Order> updateOrder(@PathVariable Long id, @RequestBody Order order) {
-        return orderService.getOrderById(id)
-                .map(existingOrder -> {
-                    existingOrder.setOrderId(id);
-                    Order updatedOrder = orderService.saveOrder(order);
-                    return new ResponseEntity<>(updatedOrder, HttpStatus.OK);
-                })
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<OrderDTO> updateOrder(@PathVariable Long id, @RequestBody Order order) throws Exception{
+        Order updatedOrder = orderService.findById(id);
+        updatedOrder.setOrderId(id);
+        orderService.saveOrder(order);
+        return new ResponseEntity<>(orderServiceImpl.convertToDto(updatedOrder), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,6 +69,12 @@ public class CustomerServiceImpl implements CustomerService {
                 customer.setFullName(request.getFullName());
             }
             if (request.getEmail() != null) {
+                if(!Objects.equals(customer.getEmail(), request.getEmail())){
+                    Customer existingCustomer = customerRepository.findByEmail(request.getEmail());
+                    if (existingCustomer != null && !existingCustomer.getCustomerId().equals(customer.getCustomerId())) {
+                        throw new RuntimeException("Email already exists for another customer");
+                    }
+                }
                 customer.setEmail(request.getEmail());
             }
             if (request.getPhone() != null) {

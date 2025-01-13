@@ -3,10 +3,12 @@ package com.quangtruong.be.services.impl;
 import com.quangtruong.be.dto.EmployeeDTO;
 import com.quangtruong.be.entities.Employee;
 import com.quangtruong.be.repositories.EmployeeRepository;
+import com.quangtruong.be.request.UpdateEmployeeRequest;
 import com.quangtruong.be.services.EmployeeService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -15,11 +17,14 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
+
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeServiceImpl.class);
 
     @Autowired
     private EmployeeRepository employeeRepository;
@@ -37,28 +42,37 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.findById(id);
     }
 
+    // Sửa lại: Bỏ passwordEncoder
     @Override
     public Employee saveEmployee(Employee employee, PasswordEncoder passwordEncoder) {
-        // Mã hóa mật khẩu trước khi lưu
-        employee.setPasswordHash(passwordEncoder.encode(employee.getPasswordHash()));
         return employeeRepository.save(employee);
     }
 
+    // Sửa lại: Sử dụng UpdateEmployeeRequest
     @Override
-    public Employee updateEmployee(Long id, Employee updatedEmployee) {
+    public Employee updateEmployee(Long id, UpdateEmployeeRequest updatedEmployee) {
         return employeeRepository.findById(id)
                 .map(employee -> {
-                    employee.setFullName(updatedEmployee.getFullName());
-                    employee.setEmail(updatedEmployee.getEmail());
-                    employee.setPhone(updatedEmployee.getPhone());
-                    employee.setRole(updatedEmployee.getRole());
-                    employee.setCreatedAt(updatedEmployee.getCreatedAt());
-                    employee.setUpdatedAt(updatedEmployee.getUpdatedAt());
-                    employee.setActive(updatedEmployee.isActive());
+                    if (updatedEmployee.getEmail() != null && !Objects.equals(employee.getEmail(), updatedEmployee.getEmail())) {
+                        Employee existingEmployee = employeeRepository.findByEmail(updatedEmployee.getEmail());
+                        if (existingEmployee != null && !existingEmployee.getEmployeeId().equals(employee.getEmployeeId())) {
+                            throw new RuntimeException("Email already exists for another employee");
+                        }
+                        employee.setEmail(updatedEmployee.getEmail());
+                    }
+                    if (updatedEmployee.getFullName() != null) {
+                        employee.setFullName(updatedEmployee.getFullName());
+                    }
+                    if (updatedEmployee.getPhone() != null) {
+                        employee.setPhone(updatedEmployee.getPhone());
+                    }
+                    if (updatedEmployee.getActive() != null) {
+                        employee.setActive(updatedEmployee.getActive());
+                    }
 
-                    // Cẩn thận khi cập nhật mật khẩu, cần có cơ chế bảo mật phù hợp
-                    if (updatedEmployee.getPasswordHash() != null && !updatedEmployee.getPasswordHash().isEmpty()) {
-                        employee.setPasswordHash(passwordEncoder.encode(updatedEmployee.getPasswordHash()));
+                    // Mã hóa mật khẩu nếu được cập nhật
+                    if (updatedEmployee.getPassword() != null && !updatedEmployee.getPassword().isEmpty()) {
+                        employee.setPasswordHash(passwordEncoder.encode(updatedEmployee.getPassword()));
                     }
 
                     return employeeRepository.save(employee);
@@ -78,14 +92,18 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        logger.debug("Loading user by username: {}", username);
+
         Employee employee = employeeRepository.findByEmail(username);
         if (employee == null) {
+            logger.debug("Employee not found for username: {}", username);
             throw new UsernameNotFoundException("User not found with email: " + username);
         }
 
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(employee.getRole()));
+        logger.debug("Employee found: {}", employee.getEmail());
+        logger.debug("Employee ID: {}", employee.getEmployeeId());
 
+        List<GrantedAuthority> authorities = new ArrayList<>();
         return new User(employee.getEmail(), employee.getPasswordHash(), authorities);
     }
 
@@ -95,7 +113,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         dto.setFullName(employee.getFullName());
         dto.setEmail(employee.getEmail());
         dto.setPhone(employee.getPhone());
-        dto.setRole(employee.getRole());
         dto.setActive(employee.isActive());
         return dto;
     }

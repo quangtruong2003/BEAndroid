@@ -1,5 +1,6 @@
 package com.quangtruong.be.controllers;
 
+import com.quangtruong.be.dto.ProductDTO;
 import com.quangtruong.be.entities.Category;
 import com.quangtruong.be.entities.Product;
 import com.quangtruong.be.entities.Supplier;
@@ -7,18 +8,16 @@ import com.quangtruong.be.request.CreateProductRequest;
 import com.quangtruong.be.services.CategoryService;
 import com.quangtruong.be.services.ProductService;
 import com.quangtruong.be.services.SupplierService;
+import com.quangtruong.be.services.impl.ProductServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/admin/products")
 public class AdminProductController {
-
     @Autowired
     private ProductService productService;
 
@@ -28,21 +27,41 @@ public class AdminProductController {
     @Autowired
     private SupplierService supplierService;
 
+    @Autowired
+    private ProductServiceImpl productServiceImpl;
+
+//    @PostMapping("/add")
+//    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody CreateProductRequest req) throws Exception {
+//        Category category = categoryService.findById(req.getCategoryId());
+//        Supplier supplier = supplierService.findById(req.getSupplierId());
+//
+//        Product createdProduct = productService.createProduct(req, category, supplier);
+//        return new ResponseEntity<>(productServiceImpl.convertToDto(createdProduct), HttpStatus.CREATED);
+//    }
     @PostMapping("/add")
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody CreateProductRequest req) throws Exception {
+    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody CreateProductRequest req) throws Exception {
         Category category = categoryService.findById(req.getCategoryId());
         Supplier supplier = supplierService.findById(req.getSupplierId());
-
-        Product createdProduct = productService.createProduct(req, category, supplier);
-        return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
+        Product createdProduct = new Product();
+        createdProduct.setCategory(category);
+        createdProduct.setSupplier(supplier);
+        createdProduct.setDescription(req.getDescription());
+        createdProduct.setProductName(req.getName());
+        createdProduct.setUnitPrice(req.getPrice());
+        createdProduct.setSpecifications(req.getSpecifications());
+        createdProduct.setUnitsInStock(req.getUnitsInStock());
+        createdProduct.setUnitsOnOrder(req.getUnitsOnOrder());
+        createdProduct.setActive(req.isActive());
+        productService.saveProduct(createdProduct);
+        return new ResponseEntity<>(productServiceImpl.convertToDto(createdProduct), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody CreateProductRequest req) throws Exception {
+    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody CreateProductRequest req) throws Exception {
         Category category = categoryService.findById(req.getCategoryId());
         Supplier supplier = supplierService.findById(req.getSupplierId());
         Product updatedProduct = productService.updateProduct(id, req, category, supplier);
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        return new ResponseEntity<>(productServiceImpl.convertToDto(updatedProduct), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -52,8 +71,20 @@ public class AdminProductController {
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<Product> updateProductStatus(@PathVariable Long id) throws Exception {
+    public ResponseEntity<ProductDTO> updateProductStatus(@PathVariable Long id) throws Exception {
         Product updatedProduct = productService.updateProductStatus(id);
-        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+        return new ResponseEntity<>(productServiceImpl.convertToDto(updatedProduct), HttpStatus.OK);
+    }
+
+    @GetMapping("/exists")
+    public ResponseEntity<Boolean> checkProductNameExists(@RequestParam String name) {
+        boolean exists = productService.existsByProductName(name);
+        return ResponseEntity.ok(exists);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProductDTO> getProduct(@PathVariable Long id) throws Exception {
+        Product product = productService.findById(id);
+        return ResponseEntity.ok(productServiceImpl.convertToDto(product));
     }
 }

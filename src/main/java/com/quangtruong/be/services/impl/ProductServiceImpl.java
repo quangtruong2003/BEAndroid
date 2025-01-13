@@ -101,7 +101,7 @@ public class ProductServiceImpl implements ProductService {
 
     public ProductDTO convertToDto(Product product) {
         ProductDTO dto = new ProductDTO();
-        dto.setProductID(product.getProductID());
+        dto.setProductId(product.getProductID());
         dto.setProductName(product.getProductName());
         dto.setCategoryId(product.getCategory().getCategoryId());
         dto.setCategoryName(product.getCategory().getCategoryName());
@@ -119,5 +119,10 @@ public class ProductServiceImpl implements ProductService {
         return products.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean existsByProductName(String productName) {
+        return productRepository.findByProductName(productName).isPresent();
     }
 }

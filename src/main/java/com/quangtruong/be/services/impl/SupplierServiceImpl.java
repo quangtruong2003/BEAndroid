@@ -38,6 +38,7 @@ public class SupplierServiceImpl implements SupplierService {
         return supplierRepository.findById(id)
                 .orElseThrow(() -> new Exception("Supplier not found with id: " + id));
     }
+
     @Override
     public Supplier updateSupplier(Long id, Supplier updatedSupplier) throws Exception {
         Supplier supplier = findById(id);
@@ -50,12 +51,14 @@ public class SupplierServiceImpl implements SupplierService {
         supplier.setUpdatedAt(LocalDateTime.now());
         return supplierRepository.save(supplier);
     }
+
     @Override
     public void deleteSupplier(Long id) throws Exception {
         Supplier supplier = findById(id);
         supplierRepository.delete(supplier);
     }
 
+    // Phương thức chuyển đổi từ Supplier sang SupplierDTO
     public SupplierDTO convertToDto(Supplier supplier) {
         SupplierDTO dto = new SupplierDTO();
         dto.setSupplierId(supplier.getSupplierId());
@@ -68,6 +71,7 @@ public class SupplierServiceImpl implements SupplierService {
         return dto;
     }
 
+    // Phương thức chuyển đổi danh sách Supplier sang danh sách SupplierDTO
     public List<SupplierDTO> toDtoList(List<Supplier> suppliers){
         return suppliers.stream().map(this::convertToDto).collect(Collectors.toList());
     }

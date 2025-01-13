@@ -1,6 +1,8 @@
 package com.quangtruong.be.services;
 
+import com.quangtruong.be.dto.EmployeeDTO;
 import com.quangtruong.be.entities.Employee;
+import com.quangtruong.be.request.UpdateEmployeeRequest;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -13,5 +15,6 @@ public interface EmployeeService extends UserDetailsService {
     Employee saveEmployee(Employee employee, PasswordEncoder passwordEncoder);
     void deleteEmployee(Long id);
     Employee findByEmail(String email);
-    Employee updateEmployee(Long id, Employee employee);
+    // Sửa lại method signature:
+    Employee updateEmployee(Long id, UpdateEmployeeRequest employee);
 }
