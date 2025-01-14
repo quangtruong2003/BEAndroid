@@ -28,16 +28,16 @@ public class CategoryController {
         return new ResponseEntity<>(savedCategory, HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category category) {
-        try {
-            Category category1 = categoryService.updateCategory(id, category);
-            return new ResponseEntity<>(category1, HttpStatus.OK);
-        } catch (Exception e) {
-            // Xử lý exception ở đây, ví dụ: log lỗi, trả về message lỗi, ...
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+//    @PutMapping("/{id}")
+//    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category category) {
+//        try {
+//            Category category1 = categoryService.updateCategory(id, category);
+//            return new ResponseEntity<>(category1, HttpStatus.OK);
+//        } catch (Exception e) {
+//            // Xử lý exception ở đây, ví dụ: log lỗi, trả về message lỗi, ...
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {

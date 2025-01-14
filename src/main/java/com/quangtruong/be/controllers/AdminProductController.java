@@ -30,31 +30,16 @@ public class AdminProductController {
     @Autowired
     private ProductServiceImpl productServiceImpl;
 
-//    @PostMapping("/add")
-//    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody CreateProductRequest req) throws Exception {
-//        Category category = categoryService.findById(req.getCategoryId());
-//        Supplier supplier = supplierService.findById(req.getSupplierId());
-//
-//        Product createdProduct = productService.createProduct(req, category, supplier);
-//        return new ResponseEntity<>(productServiceImpl.convertToDto(createdProduct), HttpStatus.CREATED);
-//    }
+    // Sửa ở đây: Bỏ comment hàm này
     @PostMapping("/add")
     public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody CreateProductRequest req) throws Exception {
         Category category = categoryService.findById(req.getCategoryId());
         Supplier supplier = supplierService.findById(req.getSupplierId());
-        Product createdProduct = new Product();
-        createdProduct.setCategory(category);
-        createdProduct.setSupplier(supplier);
-        createdProduct.setDescription(req.getDescription());
-        createdProduct.setProductName(req.getName());
-        createdProduct.setUnitPrice(req.getPrice());
-        createdProduct.setSpecifications(req.getSpecifications());
-        createdProduct.setUnitsInStock(req.getUnitsInStock());
-        createdProduct.setUnitsOnOrder(req.getUnitsOnOrder());
-        createdProduct.setActive(req.isActive());
-        productService.saveProduct(createdProduct);
+
+        Product createdProduct = productService.createProduct(req, category, supplier);
         return new ResponseEntity<>(productServiceImpl.convertToDto(createdProduct), HttpStatus.CREATED);
     }
+
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody CreateProductRequest req) throws Exception {

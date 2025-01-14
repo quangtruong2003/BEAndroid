@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -29,6 +30,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public Category saveCategory(Category category) {
+        category.setCreatedAt(LocalDateTime.now());
+        category.setUpdatedAt(LocalDateTime.now());
         return categoryRepository.save(category);
     }
 
@@ -37,20 +40,24 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new Exception("Category not found with id: " + id));
     }
+
     @Override
-    public Category updateCategory(Long id, Category updatedCategory) throws Exception {
+    public CategoryDTO updateCategory(Long id, Category updatedCategory) throws Exception {
         Category category = findById(id);
         category.setCategoryName(updatedCategory.getCategoryName());
         category.setParentCategory(updatedCategory.getParentCategory());
         category.setDescription(updatedCategory.getDescription());
         category.setUpdatedAt(LocalDateTime.now());
-        return categoryRepository.save(category);
+        return convertToDto(categoryRepository.save(category)); // Sửa ở đây
     }
+
     @Override
     public void deleteCategory(Long id) throws Exception {
         Category category = findById(id);
         categoryRepository.delete(category);
     }
+
+    @Override
     public CategoryDTO convertToDto(Category category) {
         CategoryDTO dto = new CategoryDTO();
         dto.setCategoryId(category.getCategoryId());
@@ -60,6 +67,15 @@ public class CategoryServiceImpl implements CategoryService {
             dto.setParentCategoryName(category.getParentCategory().getCategoryName());
         }
         dto.setDescription(category.getDescription());
+        dto.setCreatedAt(category.getCreatedAt());
+        dto.setUpdatedAt(category.getUpdatedAt());
+
+        dto.setProductCount(category.getProducts() != null ? category.getProducts().size() : 0);
         return dto;
+    }
+
+    @Override
+    public List<CategoryDTO> toDtoList(List<Category> categories) {
+        return categories.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 }

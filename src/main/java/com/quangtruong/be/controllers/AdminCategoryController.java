@@ -1,5 +1,6 @@
 package com.quangtruong.be.controllers;
 
+import com.quangtruong.be.dto.CategoryDTO;
 import com.quangtruong.be.entities.Category;
 import com.quangtruong.be.services.CategoryService;
 import jakarta.validation.Valid;
@@ -16,14 +17,15 @@ public class AdminCategoryController {
     private CategoryService categoryService;
 
     @PostMapping("/add")
-    public ResponseEntity<Category> createCategory(@Valid @RequestBody Category category) {
+    public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody Category category) {
         Category createdCategory = categoryService.saveCategory(category);
-        return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
+        CategoryDTO categoryDTO = categoryService.convertToDto(createdCategory);
+        return new ResponseEntity<>(categoryDTO, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @Valid @RequestBody Category category) throws Exception {
-        Category updatedCategory = categoryService.updateCategory(id, category);
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @Valid @RequestBody Category category) throws Exception {
+        CategoryDTO updatedCategory = categoryService.updateCategory(id, category);
         return new ResponseEntity<>(updatedCategory, HttpStatus.OK);
     }
 
