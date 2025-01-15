@@ -16,6 +16,13 @@ public class AdminCategoryController {
     @Autowired
     private CategoryService categoryService;
 
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable Long id) throws Exception {
+        Category category = categoryService.findById(id);
+        CategoryDTO categoryDTO = categoryService.convertToDto(category);
+        return new ResponseEntity<>(categoryDTO, HttpStatus.OK);
+    }
+
     @PostMapping("/add")
     public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody Category category) {
         Category createdCategory = categoryService.saveCategory(category);

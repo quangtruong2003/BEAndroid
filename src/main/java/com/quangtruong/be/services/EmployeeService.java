@@ -17,4 +17,5 @@ public interface EmployeeService extends UserDetailsService {
     Employee findByEmail(String email);
     // Sửa lại method signature:
     Employee updateEmployee(Long id, UpdateEmployeeRequest employee);
+    EmployeeDTO convertToDto(Employee employee);
 }

@@ -86,26 +86,42 @@ public class AuthController {
 
         logger.debug("Login request: email={}", email);
 
-        // Bỏ phần authenticate thủ công, để Spring Security xử lý
-        // Authentication authentication = authenticate(email, loginRequest.getPassword());
-        // SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        // String token = jwtProvider.generateToken(authentication);
-        // Thay vào đó, sử dụng AuthenticationManager để xác thực
         Authentication authentication = new UsernamePasswordAuthenticationToken(email, password);
         try {
             authentication = authenticationManager.authenticate(authentication);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            String token = jwtProvider.generateToken(authentication);
-            AuthResponse authResponse = new AuthResponse("success", token);
-            logger.debug("Login response: {}", authResponse);
-            return new ResponseEntity<>(authResponse, HttpStatus.OK);
+
+            // Kiểm tra xem user là employee hay customer
+            // 1. Thử tìm employee
+            Employee employee = employeeService.findByEmail(email);
+            if (employee != null) {
+                // Là employee
+                String token = jwtProvider.generateToken(authentication);
+                AuthResponse authResponse = new AuthResponse("employee", token);
+                logger.debug("Employee login response: {}", authResponse);
+                return new ResponseEntity<>(authResponse, HttpStatus.OK);
+            }
+
+            // 2. Nếu không tìm thấy employee, thử tìm customer
+            CustomerDTO customerDTO = customerService.getCustomerByEmail(email);
+            if (customerDTO != null) {
+                // Là customer
+                String token = jwtProvider.generateToken(authentication);
+                AuthResponse authResponse = new AuthResponse("customer", token);
+                logger.debug("Customer login response: {}", authResponse);
+                return new ResponseEntity<>(authResponse, HttpStatus.OK);
+            }
+
+            // 3. Nếu không tìm thấy cả employee và customer
+            throw new BadCredentialsException("Invalid username or password");
+
         } catch (BadCredentialsException e) {
             // Xử lý lỗi xác thực
             logger.error("Authentication failed for email: {}", email, e);
             return new ResponseEntity<>(new AuthResponse("Invalid username or password", null), HttpStatus.UNAUTHORIZED);
         }
     }
+
 
     // Bỏ method authenticate
     // private Authentication authenticate(String email, String password) {

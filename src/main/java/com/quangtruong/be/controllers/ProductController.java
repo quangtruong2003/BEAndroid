@@ -35,26 +35,26 @@ public class ProductController {
         return new ResponseEntity<>(productDTO, HttpStatus.OK);
     }
 
-    @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
-        Product savedProduct = productService.saveProduct(product);
-        return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
-    }
-    @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        return productService.getProductById(id)
-                .map(existingProduct -> {
-                    Product updatedProduct = productService.saveProduct(product);
-                    return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
-                })
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) throws Exception {
-        productService.deleteProduct(id);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-    }
+//    @PostMapping
+//    public ResponseEntity<Product> createProduct(@RequestBody Product product) {
+//        Product savedProduct = productService.saveProduct(product);
+//        return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
+//    }
+//    @PutMapping("/{id}")
+//    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+//        return productService.getProductById(id)
+//                .map(existingProduct -> {
+//                    Product updatedProduct = productService.saveProduct(product);
+//                    return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+//                })
+//                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+//    }
+//
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) throws Exception {
+//        productService.deleteProduct(id);
+//        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+//    }
 
     @GetMapping("/search")
     public ResponseEntity<List<Product>> searchProducts(@RequestParam(required = false) String keyword,

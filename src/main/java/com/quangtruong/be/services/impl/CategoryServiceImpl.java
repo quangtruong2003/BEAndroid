@@ -78,4 +78,5 @@ public class CategoryServiceImpl implements CategoryService {
     public List<CategoryDTO> toDtoList(List<Category> categories) {
         return categories.stream().map(this::convertToDto).collect(Collectors.toList());
     }
+
 }
